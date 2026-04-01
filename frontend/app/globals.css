@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Base neutrals */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-secondary: #475569;
+
+  /* Brand accent */
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --accent-border: #bfdbfe;
+
+  /* Risk (reference / docs) */
+  --risk-high: #dc2626;
+  --risk-high-bg: #fef2f2;
+  --risk-medium: #d97706;
+  --risk-medium-bg: #fffbeb;
+  --risk-low: #059669;
+  --risk-low-bg: #ecfdf5;
+}
+
+@layer base {
+  body {
+    color: var(--text);
+    background: var(--bg);
+  }
+
+  ::selection {
+    background-color: var(--accent-soft);
+    color: var(--text);
+  }
+}
