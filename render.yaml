@@ -1,0 +1,16 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: New → Blueprint → connect repo; set secret env vars in the dashboard.
+
+services:
+  - type: web
+    name: phishcheck-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

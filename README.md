@@ -19,7 +19,7 @@ No authentication, database, file uploads, or extensions.
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 cp .env.example .env
 # Edit .env: set OPENAI_API_KEY (required). Optionally OPENAI_MODEL, CORS_ORIGINS.
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
@@ -56,6 +56,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - Serve the backend over HTTPS and restrict `CORS_ORIGINS` to your frontend origin(s).
 - Set `NEXT_PUBLIC_API_URL` to your deployed API URL.
 - Never commit `.env` or `.env.local`; use secrets management in your host.
+- **Render:** see `backend/DEPLOY-RENDER.md` and repo root `render.yaml`.
 
 ## Analyze response
 
