@@ -334,7 +334,7 @@ export default function Home() {
           <ThemeSwitcher />
         </header>
 
-        <div className="rounded-3xl border border-ph-border bg-ph-card shadow-[0_32px_64px_-24px_rgba(0,0,0,0.35),0_12px_32px_-12px_var(--ph-shell-glow)] transition-[background-color,border-color,box-shadow] duration-200">
+        <div className="isolate overflow-clip rounded-3xl border border-ph-border bg-ph-card shadow-[var(--ph-shell-card-shadow)] transition-[background-color,border-color,box-shadow] duration-200">
           {error ? (
             <div
               role="alert"
@@ -475,8 +475,8 @@ export default function Home() {
             </div>
 
             {/* Results column — desktop: sticky + bounded height + inner scroll only here */}
-            <div className="flex min-w-0 flex-col border-t border-ph-border bg-ph-panel-muted/90 lg:sticky lg:top-4 lg:z-10 lg:max-h-[calc(100dvh-2rem)] lg:min-h-0 lg:self-start lg:flex lg:flex-col lg:overflow-hidden lg:border-t-0 lg:border-l lg:border-ph-border transition-[background-color,border-color] duration-200">
-              <div className="shrink-0 border-b border-ph-border bg-ph-card/95 px-5 py-3.5 backdrop-blur-sm transition-colors duration-200">
+            <div className="flex min-w-0 flex-col border-t border-ph-border bg-ph-panel-muted lg:sticky lg:top-4 lg:z-10 lg:max-h-[calc(100dvh-2rem)] lg:min-h-0 lg:self-start lg:flex lg:flex-col lg:overflow-hidden lg:border-t-0 lg:border-l lg:border-ph-border transition-[background-color,border-color] duration-200">
+              <div className="shrink-0 border-b border-ph-border bg-ph-card px-5 py-3.5 transition-colors duration-200">
                 <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-ph-muted">
                   Results
                 </h2>
