@@ -316,7 +316,7 @@ export function HomePage() {
               </p>
             </div>
             <h1 className="mx-auto mt-3 max-w-2xl text-center text-[1.5rem] font-bold leading-tight tracking-tight text-ph-text sm:text-[1.75rem] lg:mx-0 lg:text-left">
-              Check suspicious emails, texts, and links for phishing—in seconds
+              Check suspicious emails, texts, and links for phishing in seconds
             </h1>
             <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-ph-muted sm:text-[0.9375rem] lg:mx-0 lg:text-left">
               AI-powered phishing checker: paste a message, add optional email
