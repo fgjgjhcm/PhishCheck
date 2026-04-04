@@ -1,9 +1,20 @@
 "use client";
 
 import { AnalysisResult } from "@/components/AnalysisResult";
+import { PaywallModal } from "@/components/PaywallModal";
 import { PhishCheckLogoMark } from "@/components/PhishCheckLogoMark";
+import { PlanDevTools } from "@/components/PlanDevTools";
+import { PlanToast } from "@/components/PlanToast";
 import { StayProtectedSection } from "@/components/StayProtectedSection";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { formatReport } from "@/lib/format-report";
+import {
+  getRemainingScans,
+  incrementScanUsage,
+  isProUser,
+  isScanAllowed,
+  unlockPro,
+} from "@/lib/plan";
 import { getOrCreateSessionId } from "@/lib/phishcheck-session";
 import type { AnalyzeResponse } from "@/lib/phishcheck-types";
 import { useCallback, useEffect, useState } from "react";
@@ -47,29 +58,32 @@ Return-Path: <bounces@microsoft365-verify.net>`,
 } as const;
 
 const inputClass =
-  "w-full resize-y rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-sm leading-relaxed text-[#0F172A] shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] outline-none ring-offset-2 transition duration-150 placeholder:text-slate-400 hover:border-slate-300/90 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 focus-visible:outline-none disabled:opacity-60";
+  "w-full resize-y rounded-xl border border-ph-border bg-ph-input px-4 py-3 text-sm leading-relaxed text-ph-text shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] outline-none ring-offset-2 ring-offset-[var(--ph-page-bg)] transition-[background-color,border-color,color,box-shadow] duration-200 placeholder:text-ph-muted/75 hover:border-ph-border-subtle focus:border-ph-primary focus:ring-2 focus:ring-ph-primary/25 focus-visible:outline-none disabled:opacity-60";
 
 const secondaryBtnClass =
-  "inline-flex h-11 min-w-[6.5rem] items-center justify-center rounded-xl border border-[#E2E8F0] bg-white px-5 text-sm font-semibold text-[#0F172A] shadow-sm shadow-slate-900/[0.04] transition duration-150 hover:border-slate-300 hover:bg-slate-50/90 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/30 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100";
+  "inline-flex h-11 min-w-[6.5rem] items-center justify-center rounded-xl border border-ph-border bg-ph-card px-5 text-sm font-semibold text-ph-text shadow-sm transition-[background-color,border-color,color,box-shadow,transform] duration-200 hover:border-ph-primary/35 hover:bg-ph-accent-soft active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ph-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ph-page-bg)] disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100";
 
 const primaryBtnClass =
-  "inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-[#2563EB] px-6 text-sm font-semibold text-white shadow-md shadow-[#2563EB]/22 transition duration-150 hover:bg-[#1D4ED8] hover:shadow-lg hover:shadow-[#2563EB]/28 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40 focus-visible:ring-offset-2 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-md disabled:hover:bg-[#2563EB] disabled:hover:shadow-md disabled:active:scale-100 sm:flex-none sm:min-w-[11rem]";
+  "inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-ph-primary px-6 text-sm font-semibold text-white shadow-md shadow-black/15 transition-[background-color,box-shadow,transform] duration-200 hover:bg-ph-primary-hover hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ph-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ph-page-bg)] active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-md disabled:hover:bg-ph-primary disabled:active:scale-100 sm:flex-none sm:min-w-[11rem]";
 
 const exampleChipBtnClass =
-  "rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs font-semibold text-[#0F172A] shadow-sm transition duration-150 hover:border-[#BFDBFE] hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/25 focus-visible:ring-offset-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
+  "rounded-lg border border-ph-border bg-ph-card px-3 py-1.5 text-xs font-semibold text-ph-text shadow-sm transition-[background-color,border-color,transform] duration-200 hover:border-ph-accent-border hover:bg-ph-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ph-primary/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ph-page-bg)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
+
+/** Stable on server + first client paint; avoids hydration mismatch with localStorage / date. */
+const SCAN_STATUS_SSR_FALLBACK = "3 free scans per day";
 
 function ResultsEmptyState({ loading }: { loading: boolean }) {
   if (loading) {
     return (
-      <div className="relative flex min-h-[220px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[#BFDBFE] bg-gradient-to-b from-[#EFF6FF]/45 via-white/50 to-[#F8FAFC]/80 px-6 py-10 text-center shadow-sm shadow-blue-900/[0.03] motion-safe:animate-result-reveal motion-reduce:animate-none">
+      <div className="relative flex min-h-[220px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-ph-accent-border bg-gradient-to-b from-ph-accent-soft/80 via-ph-card/50 to-ph-panel-muted px-6 py-10 text-center shadow-sm transition-[background-color,border-color] duration-200 motion-safe:animate-result-reveal motion-reduce:animate-none">
         <span
-          className="relative h-8 w-8 rounded-full border-2 border-[#2563EB]/18 border-t-[#2563EB] motion-safe:animate-spin motion-reduce:animate-none"
+          className="relative h-8 w-8 rounded-full border-2 border-ph-primary/25 border-t-ph-primary motion-safe:animate-spin motion-reduce:animate-none"
           aria-hidden
         />
-        <p className="mt-4 text-sm font-semibold tracking-tight text-slate-800">
+        <p className="mt-4 text-sm font-semibold tracking-tight text-ph-text">
           Running analysis…
         </p>
-        <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-slate-500">
+        <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-ph-muted">
           This usually takes a few seconds.
         </p>
       </div>
@@ -77,13 +91,13 @@ function ResultsEmptyState({ loading }: { loading: boolean }) {
   }
 
   return (
-    <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#E2E8F0] bg-white/80 px-6 py-10 text-center shadow-sm shadow-slate-900/[0.02]">
-      <p className="text-[0.9375rem] font-semibold tracking-tight text-slate-800">
+    <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-ph-border bg-ph-card/80 px-6 py-10 text-center shadow-sm transition-[background-color,border-color] duration-200">
+      <p className="text-[0.9375rem] font-semibold tracking-tight text-ph-text">
         No analysis yet
       </p>
-      <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-500">
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-ph-muted">
         Paste a message, then run{" "}
-        <span className="font-medium text-[#0F172A]">Analyze message</span> to
+        <span className="font-medium text-ph-text">Analyze message</span> to
         see risk level, signals, and guidance—without leaving this view.
       </p>
     </div>
@@ -99,6 +113,18 @@ export default function Home() {
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [copyLabel, setCopyLabel] = useState("Copy report");
   const [resultRevealNonce, setResultRevealNonce] = useState(0);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [, bumpPlanUi] = useState(0);
+  const [planUiReady, setPlanUiReady] = useState(false);
+
+  const refreshPlanUi = useCallback(() => {
+    bumpPlanUi((n) => n + 1);
+  }, []);
+
+  const dismissToast = useCallback(() => {
+    setToastMessage(null);
+  }, []);
 
   const loadExample = useCallback((key: keyof typeof EXAMPLES) => {
     const ex = EXAMPLES[key];
@@ -126,6 +152,11 @@ export default function Home() {
     const trimmed = text.trim();
     if (!trimmed) {
       setError("Paste a message to analyze.");
+      return;
+    }
+
+    if (!isScanAllowed()) {
+      setPaywallOpen(true);
       return;
     }
 
@@ -165,6 +196,7 @@ export default function Home() {
         throw new Error(msg);
       }
 
+      incrementScanUsage();
       setResult(data as AnalyzeResponse);
       setResultRevealNonce((n) => n + 1);
     } catch (e) {
@@ -192,6 +224,32 @@ export default function Home() {
     getOrCreateSessionId();
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success") !== "true") {
+      return;
+    }
+
+    const alreadyPro = isProUser();
+    if (!alreadyPro) {
+      unlockPro();
+      setToastMessage("PhishCheck Pro unlocked");
+    }
+
+    params.delete("success");
+    const next = params.toString();
+    const path = `${window.location.pathname}${next ? `?${next}` : ""}${window.location.hash}`;
+    window.history.replaceState({}, "", path);
+    refreshPlanUi();
+  }, [refreshPlanUi]);
+
+  useEffect(() => {
+    setPlanUiReady(true);
+  }, []);
+
   const copyReport = useCallback(async () => {
     if (!result) {
       return;
@@ -206,56 +264,81 @@ export default function Home() {
     }
   }, [headers, result, text]);
 
+  const scanStatusLine = planUiReady
+    ? isProUser()
+      ? "Unlimited scans (Pro)"
+      : (() => {
+          const remaining = getRemainingScans();
+          const r = remaining === "unlimited" ? 0 : remaining;
+          const left =
+            r === 0
+              ? "No free scans left today"
+              : `${r} free scan${r === 1 ? "" : "s"} left today`;
+          return `3 free scans per day · ${left}`;
+        })()
+    : SCAN_STATUS_SSR_FALLBACK;
+
+  const showProBadge = planUiReady && isProUser();
+
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-slate-200/40 via-[#E8EDF4] to-[#F1F5F9]">
+    <main className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-ph-page via-ph-panel-muted to-ph-page transition-[background] duration-200">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_50%_at_50%_-10%,rgba(37,99,235,0.09),transparent_45%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_50%_at_50%_-10%,var(--ph-shell-glow),transparent_45%)]"
         aria-hidden
       />
       <div className="relative mx-auto max-w-[1180px] px-3 pb-10 pt-4 sm:px-5 sm:pb-12 sm:pt-5">
-        <header className="mb-4 flex flex-col gap-3 sm:mb-5 lg:flex-row lg:items-end lg:justify-between">
+        <header className="mb-4 flex flex-col gap-4 sm:mb-5 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
           <div className="text-center lg:text-left">
             <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-blue-950/85">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-ph-accent-border bg-ph-accent-soft px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-ph-text">
                 <span
-                  className="h-1.5 w-1.5 rounded-full bg-[#059669]"
+                  className="h-1.5 w-1.5 rounded-full bg-[var(--ph-success-dot)]"
                   aria-hidden
                 />
                 Private triage · No signup
               </span>
+              {showProBadge ? (
+                <span className="inline-flex items-center rounded-full border border-ph-method-badge-border bg-ph-method-badge-bg px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-ph-method-badge-text">
+                  Pro
+                </span>
+              ) : null}
             </div>
             <div className="mt-2 flex items-center justify-center gap-3 sm:gap-3.5 lg:justify-start">
               <PhishCheckLogoMark
                 framed
-                className="h-5 w-5 text-[#1D4ED8] sm:h-6 sm:w-6"
+                className="h-5 w-5 text-ph-primary sm:h-6 sm:w-6"
                 decorative
               />
-              <h1 className="text-[1.625rem] font-bold tracking-tighter text-slate-900 sm:text-[1.875rem]">
+              <h1 className="text-[1.625rem] font-bold tracking-tighter text-ph-text sm:text-[1.875rem]">
                 PhishCheck
               </h1>
             </div>
-            <p className="mt-2 max-w-xl text-sm font-semibold leading-snug text-slate-700 sm:text-[0.9375rem]">
+            <p className="mt-2 max-w-xl text-sm font-semibold leading-snug text-ph-text sm:text-[0.9375rem]">
               Clear phishing risk checks for everyday messages
             </p>
-            <p className="mx-auto mt-2 max-w-lg text-xs font-normal leading-relaxed text-slate-500 lg:mx-0 sm:text-sm">
+            <p className="mx-auto mt-2 max-w-lg text-xs font-normal leading-relaxed text-ph-muted lg:mx-0 sm:text-sm">
               Paste-only workflow. Optional headers for authentication context.{" "}
-              <kbd className="rounded border border-[#E2E8F0] bg-white px-1 py-0.5 font-mono text-[0.65rem]">
+              <kbd className="rounded border border-ph-border bg-[var(--ph-kbd-bg)] px-1 py-0.5 font-mono text-[0.65rem] text-ph-text transition-colors duration-200">
                 ⌘
               </kbd>
               +
-              <kbd className="rounded border border-[#E2E8F0] bg-white px-1 py-0.5 font-mono text-[0.65rem]">
+              <kbd className="rounded border border-ph-border bg-[var(--ph-kbd-bg)] px-1 py-0.5 font-mono text-[0.65rem] text-ph-text transition-colors duration-200">
                 Enter
               </kbd>{" "}
               to analyze.
             </p>
+            <p className="mx-auto mt-2 max-w-lg text-xs font-medium leading-relaxed text-ph-text/90 lg:mx-0 sm:text-sm">
+              {scanStatusLine}
+            </p>
           </div>
+          <ThemeSwitcher />
         </header>
 
-        <div className="rounded-3xl border border-[#CBD5E1]/90 bg-white shadow-[0_32px_64px_-24px_rgba(15,23,42,0.22),0_12px_32px_-12px_rgba(37,99,235,0.06),0_0_0_1px_rgba(255,255,255,0.6)_inset]">
+        <div className="rounded-3xl border border-ph-border bg-ph-card shadow-[0_32px_64px_-24px_rgba(0,0,0,0.35),0_12px_32px_-12px_var(--ph-shell-glow)] transition-[background-color,border-color,box-shadow] duration-200">
           {error ? (
             <div
               role="alert"
-              className="border-b border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-900 sm:px-6"
+              className="border-b border-[var(--ph-error-border)] bg-[var(--ph-error-bg)] px-4 py-3 text-sm text-[var(--ph-error-text)] sm:px-6"
             >
               <span className="font-semibold">Something went wrong. </span>
               {error}
@@ -264,22 +347,22 @@ export default function Home() {
 
           <div className="grid grid-cols-1 items-stretch lg:grid-cols-2 lg:items-start">
             {/* Input column — grows with page; no fixed height / no inner scroll trap */}
-            <div className="flex min-w-0 flex-col border-[#E2E8F0] bg-white lg:border-r">
-              <div className="shrink-0 border-b border-[#E2E8F0] bg-[#FAFBFC] px-5 py-3.5">
-                <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-slate-500">
+            <div className="flex min-w-0 flex-col border-ph-border bg-ph-card lg:border-r lg:border-ph-border transition-[background-color,border-color] duration-200">
+              <div className="shrink-0 border-b border-ph-border bg-ph-panel px-5 py-3.5 transition-colors duration-200">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-ph-muted">
                   Input
                 </h2>
-                <p className="mt-1 text-xs font-normal leading-relaxed text-slate-500">
+                <p className="mt-1 text-xs font-normal leading-relaxed text-ph-muted">
                   Message body and optional raw headers
                 </p>
               </div>
               <div className="p-5 sm:p-6">
                 <div className="flex flex-col gap-4">
-                  <div className="rounded-xl border border-[#BFDBFE]/80 bg-[#EFF6FF]/50 p-4 shadow-sm shadow-slate-900/[0.02]">
-                    <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-slate-500">
+                  <div className="rounded-xl border border-ph-accent-border bg-ph-accent-soft/60 p-4 shadow-sm transition-[background-color,border-color] duration-200">
+                    <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-ph-muted">
                       Try an example
                     </p>
-                    <p className="mt-1.5 text-xs font-normal leading-relaxed text-slate-500">
+                    <p className="mt-1.5 text-xs font-normal leading-relaxed text-ph-muted">
                       Load a sample to preview the output structure.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -302,7 +385,7 @@ export default function Home() {
                   <div>
                     <label
                       htmlFor="message"
-                      className="text-sm font-semibold tracking-tight text-slate-800"
+                      className="text-sm font-semibold tracking-tight text-ph-text"
                     >
                       Message
                     </label>
@@ -322,20 +405,20 @@ export default function Home() {
                     onToggle={(e) =>
                       setHeadersOpen((e.target as HTMLDetailsElement).open)
                     }
-                    className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] transition duration-150 hover:border-[#BFDBFE]/70"
+                    className="rounded-xl border border-ph-border bg-ph-panel-muted transition-[background-color,border-color] duration-200 hover:border-ph-accent-border/80"
                   >
-                    <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold tracking-tight text-slate-800 outline-none transition hover:text-slate-900 [&::-webkit-details-marker]:hidden focus-visible:rounded-xl focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/20">
+                    <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold tracking-tight text-ph-text outline-none transition-colors hover:text-ph-text [&::-webkit-details-marker]:hidden focus-visible:rounded-xl focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ph-primary/25">
                       <span className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                         <span>Optional: raw email headers</span>
-                        <span className="text-xs font-medium text-[#2563EB]">
+                        <span className="text-xs font-medium text-ph-primary">
                           DKIM · SPF · DMARC
                         </span>
                       </span>
                     </summary>
-                    <div className="border-t border-[#E2E8F0] px-4 pb-4 pt-2">
-                      <p className="text-xs text-[#475569]">
+                    <div className="border-t border-ph-border px-4 pb-4 pt-2">
+                      <p className="text-xs text-ph-muted">
                         Include{" "}
-                        <code className="rounded bg-white px-1 py-0.5 font-mono text-[0.65rem] ring-1 ring-[#E2E8F0]">
+                        <code className="rounded bg-ph-input px-1 py-0.5 font-mono text-[0.65rem] text-ph-text ring-1 ring-ph-border transition-colors duration-200">
                           Authentication-Results
                         </code>{" "}
                         when available.
@@ -351,7 +434,7 @@ export default function Home() {
                     </div>
                   </details>
 
-                  <div className="flex flex-col gap-2 border-t border-[#E2E8F0] pt-4 sm:flex-row sm:flex-wrap sm:items-stretch">
+                  <div className="flex flex-col gap-2 border-t border-ph-border pt-4 sm:flex-row sm:flex-wrap sm:items-stretch">
                     <button
                       type="button"
                       onClick={analyze}
@@ -392,12 +475,12 @@ export default function Home() {
             </div>
 
             {/* Results column — desktop: sticky + bounded height + inner scroll only here */}
-            <div className="flex min-w-0 flex-col border-t border-[#E2E8F0] bg-[#F8FAFC]/85 lg:sticky lg:top-4 lg:z-10 lg:max-h-[calc(100dvh-2rem)] lg:min-h-0 lg:self-start lg:flex lg:flex-col lg:overflow-hidden lg:border-t-0">
-              <div className="shrink-0 border-b border-[#E2E8F0] bg-white/90 px-5 py-3.5 backdrop-blur-sm">
-                <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-slate-500">
+            <div className="flex min-w-0 flex-col border-t border-ph-border bg-ph-panel-muted/90 lg:sticky lg:top-4 lg:z-10 lg:max-h-[calc(100dvh-2rem)] lg:min-h-0 lg:self-start lg:flex lg:flex-col lg:overflow-hidden lg:border-t-0 lg:border-l lg:border-ph-border transition-[background-color,border-color] duration-200">
+              <div className="shrink-0 border-b border-ph-border bg-ph-card/95 px-5 py-3.5 backdrop-blur-sm transition-colors duration-200">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-ph-muted">
                   Results
                 </h2>
-                <p className="mt-1 text-xs font-normal leading-relaxed text-slate-500">
+                <p className="mt-1 text-xs font-normal leading-relaxed text-ph-muted">
                   Long output scrolls inside this panel on desktop
                 </p>
               </div>
@@ -417,9 +500,9 @@ export default function Home() {
             </div>
           </div>
 
-          <footer className="border-t border-[#E2E8F0] bg-[#FAFBFC] px-5 py-4 sm:px-6">
-            <p className="text-center text-xs font-normal leading-relaxed text-slate-500 sm:text-sm">
-              <span className="font-semibold text-slate-800">Important.</span>{" "}
+          <footer className="border-t border-ph-border bg-ph-panel px-5 py-4 transition-colors duration-200 sm:px-6">
+            <p className="text-center text-xs font-normal leading-relaxed text-ph-muted sm:text-sm">
+              <span className="font-semibold text-ph-text">Important.</span>{" "}
               PhishCheck provides an AI-generated assessment for triage only—not a
               guarantee of safety. Confirm sensitive requests through official
               channels.
@@ -427,6 +510,12 @@ export default function Home() {
           </footer>
         </div>
       </div>
+
+      <PaywallModal open={paywallOpen} onClose={() => setPaywallOpen(false)} />
+      {toastMessage ? (
+        <PlanToast message={toastMessage} onDismiss={dismissToast} />
+      ) : null}
+      <PlanDevTools onPlanChanged={refreshPlanUi} />
     </main>
   );
 }

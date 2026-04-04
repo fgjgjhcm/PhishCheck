@@ -9,6 +9,24 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        ph: {
+          page: "var(--ph-page-bg)",
+          card: "var(--ph-card)",
+          input: "var(--ph-input-bg)",
+          primary: "var(--ph-primary)",
+          "primary-hover": "var(--ph-primary-hover)",
+          text: "var(--ph-text)",
+          muted: "var(--ph-text-secondary)",
+          danger: "var(--ph-danger)",
+          border: "var(--ph-border)",
+          "border-subtle": "var(--ph-border-subtle)",
+          panel: "var(--ph-panel)",
+          "panel-muted": "var(--ph-panel-muted)",
+          "accent-soft": "var(--ph-accent-soft)",
+          "accent-border": "var(--ph-accent-border)",
+        },
+      },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],

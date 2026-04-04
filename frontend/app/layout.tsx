@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
+import { ThemeProvider } from "@/components/ThemeProvider";
+import {
+  DEFAULT_THEME,
+  THEME_STORAGE_KEY,
+  THEMES,
+} from "@/lib/theme-constants";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,17 +32,22 @@ export const metadata: Metadata = {
   },
 };
 
+const themeInitScript = `(function(){try{var k='${THEME_STORAGE_KEY}';var t=localStorage.getItem(k);var a=['${THEMES.join("','")}'];var th=a.indexOf(t)>=0?t:'${DEFAULT_THEME}';document.documentElement.setAttribute('data-theme',th);}catch(e){document.documentElement.setAttribute('data-theme','${DEFAULT_THEME}');}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-sans text-[#0F172A] antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-ph-page font-sans text-ph-text antialiased transition-[background-color,color] duration-200`}
       >
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

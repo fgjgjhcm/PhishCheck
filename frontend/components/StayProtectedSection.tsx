@@ -19,16 +19,16 @@ export function StayProtectedSection({ riskLevel }: StayProtectedSectionProps) {
 
   return (
     <aside
-      className="mt-6 border-t border-slate-200/90 pt-6"
+      className="mt-6 border-t border-ph-border pt-6 transition-[border-color] duration-200"
       aria-labelledby="stay-protected-heading"
     >
       <h2
         id="stay-protected-heading"
-        className="text-base font-semibold leading-snug tracking-tight text-slate-800 sm:text-[1.0625rem]"
+        className="text-base font-semibold leading-snug tracking-tight text-ph-text sm:text-[1.0625rem]"
       >
         {title}
       </h2>
-      <p className="mt-2 max-w-prose text-sm leading-relaxed text-slate-600">
+      <p className="mt-2 max-w-prose text-sm leading-relaxed text-ph-muted">
         {subtitle}
       </p>
 
@@ -38,23 +38,23 @@ export function StayProtectedSection({ riskLevel }: StayProtectedSectionProps) {
           return (
             <li key={item.id}>
               <div
-                className={`rounded-xl px-4 py-3.5 shadow-sm shadow-slate-900/[0.025] transition duration-150 ${
+                className={`rounded-xl px-4 py-3.5 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 ${
                   emphasized
-                    ? "border border-[#BFDBFE]/90 bg-[#EFF6FF]/45 ring-1 ring-[#2563EB]/12 hover:bg-[#EFF6FF]/65"
-                    : "border border-slate-200/90 bg-white/90 hover:border-slate-300/90 hover:bg-white"
+                    ? "border border-ph-accent-border bg-ph-accent-soft/50 ring-1 ring-ph-primary/15 hover:bg-ph-accent-soft/80"
+                    : "border border-ph-border bg-ph-card/90 hover:border-ph-border-subtle hover:bg-ph-card"
                 }`}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-semibold tracking-tight text-slate-800">
+                  <p className="text-sm font-semibold tracking-tight text-ph-text">
                     {item.category}
                   </p>
                   {emphasized ? (
-                    <span className="inline-flex rounded-full bg-white/80 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.05em] text-slate-600 ring-1 ring-slate-200/80">
+                    <span className="inline-flex rounded-full bg-ph-card/90 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.05em] text-ph-muted ring-1 ring-ph-border transition-colors duration-200">
                       Recommended
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                <p className="mt-2 text-sm leading-relaxed text-ph-muted">
                   {item.rationale}
                 </p>
                 <p className="mt-3">
@@ -63,7 +63,6 @@ export function StayProtectedSection({ riskLevel }: StayProtectedSectionProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => {
-                      /* Let modified clicks use native new-tab behavior */
                       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
                         return;
                       }
@@ -75,7 +74,7 @@ export function StayProtectedSection({ riskLevel }: StayProtectedSectionProps) {
                         href: item.href,
                       });
                     }}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-[#1D4ED8] underline decoration-[#1D4ED8]/25 underline-offset-2 transition hover:text-[#1E40AF] hover:decoration-[#1E40AF]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:ring-offset-2 rounded-sm"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-[var(--ph-link)] underline decoration-[var(--ph-link)]/30 underline-offset-2 transition hover:text-[var(--ph-link-hover)] hover:decoration-[var(--ph-link-hover)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ph-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ph-page-bg)] rounded-sm"
                   >
                     {item.ctaLabel}
                     <span aria-hidden className="text-xs font-normal opacity-70">
@@ -89,7 +88,7 @@ export function StayProtectedSection({ riskLevel }: StayProtectedSectionProps) {
         })}
       </ul>
 
-      <p className="mt-4 text-[0.6875rem] leading-relaxed text-slate-400">
+      <p className="mt-4 text-[0.6875rem] leading-relaxed text-ph-muted/80">
         We only recommend widely trusted security tools. No sponsored placements.
       </p>
     </aside>

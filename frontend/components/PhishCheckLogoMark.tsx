@@ -8,7 +8,7 @@ type PhishCheckLogoMarkProps = {
 
 /** Minimal shield + check mark for PhishCheck (inline SVG, scales cleanly). */
 export function PhishCheckLogoMark({
-  className = "h-6 w-6 text-[#2563EB]",
+  className = "h-6 w-6 text-ph-primary",
   decorative = true,
   framed = false,
 }: PhishCheckLogoMarkProps) {
@@ -41,7 +41,7 @@ export function PhishCheckLogoMark({
   }
 
   return (
-    <span className="inline-flex shrink-0 rounded-full bg-gradient-to-br from-sky-50/95 via-[#EFF6FF] to-blue-100/85 p-1.5 ring-1 ring-[#BFDBFE]/65 shadow-[0_1px_2px_rgba(37,99,235,0.07)] sm:p-2">
+    <span className="inline-flex shrink-0 rounded-full bg-gradient-to-br from-ph-accent-soft via-ph-accent-soft to-ph-panel-muted p-1.5 ring-1 ring-ph-accent-border shadow-sm transition-[background-color,box-shadow] duration-200 sm:p-2">
       {mark}
     </span>
   );

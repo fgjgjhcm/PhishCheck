@@ -63,6 +63,7 @@ export function buildResultSummary(result: AnalyzeResponse): string {
   return "This message strongly resembles a phishing attempt based on several high-risk patterns.";
 }
 
+/** Styling tokens reference CSS variables set per `[data-theme]` in `globals.css`. */
 export function riskVisuals(level: RiskLevel): {
   badge: string;
   bar: string;
@@ -79,59 +80,56 @@ export function riskVisuals(level: RiskLevel): {
     case "High":
       return {
         badge:
-          "bg-[#DC2626] text-white shadow-sm shadow-red-900/20 ring-1 ring-red-900/10",
-        bar: "bg-[#DC2626] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]",
-        barTrack: "bg-[#FEF2F2] ring-1 ring-red-200/70",
+          "bg-[var(--ph-rh-badge)] text-[var(--ph-rh-badge-fg)] shadow-sm ring-1 ring-[var(--ph-rh-ring)]",
+        bar: "bg-[var(--ph-rh-bar)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]",
+        barTrack:
+          "bg-[var(--ph-rh-track)] ring-1 ring-[var(--ph-rh-track-ring)]",
         headerTint:
-          "bg-gradient-to-br from-[#FEF2F2]/90 via-white to-[#F8FAFC]",
-        headerBorder: "border-red-200/40",
-        headerGlow:
-          "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.55),0_0_0_1px_rgba(220,38,38,0.05),0_12px_36px_-16px_rgba(220,38,38,0.12)]",
-        headerAmbient:
-          "bg-[radial-gradient(ellipse_95%_85%_at_50%_-15%,rgba(220,38,38,0.11),transparent_58%)]",
+          "bg-gradient-to-br from-[var(--ph-rh-h-from)] via-[var(--ph-rh-h-via)] to-[var(--ph-rh-h-to)]",
+        headerBorder: "border-[var(--ph-rh-h-border)]",
+        headerGlow: "shadow-[var(--ph-rh-h-glow)]",
+        headerAmbient: "[background-image:var(--ph-rh-ambient)]",
         chipItem:
-          "border-red-200/80 bg-[#FEF2F2] text-red-900 shadow-sm shadow-red-900/[0.04]",
+          "border border-[var(--ph-rh-chip-border)] bg-[var(--ph-rh-chip-bg)] text-[var(--ph-rh-chip-fg)] shadow-sm",
         proseAccent:
-          "border-l-[3px] border-[#DC2626]/85 bg-[#FEF2F2]/60 pl-5 sm:pl-6",
-        eyebrow: "text-[#991B1B]",
+          "border-l-[3px] border-[var(--ph-rh-prose-border)] bg-[var(--ph-rh-prose-bg)] pl-5 sm:pl-6",
+        eyebrow: "text-[var(--ph-rh-eyebrow)]",
       };
     case "Medium":
       return {
         badge:
-          "bg-[#D97706] text-white shadow-sm shadow-amber-900/15 ring-1 ring-amber-900/10",
-        bar: "bg-[#D97706] shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]",
-        barTrack: "bg-[#FFFBEB] ring-1 ring-amber-200/70",
+          "bg-[var(--ph-rm-badge)] text-[var(--ph-rm-badge-fg)] shadow-sm ring-1 ring-[var(--ph-rm-ring)]",
+        bar: "bg-[var(--ph-rm-bar)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]",
+        barTrack:
+          "bg-[var(--ph-rm-track)] ring-1 ring-[var(--ph-rm-track-ring)]",
         headerTint:
-          "bg-gradient-to-br from-[#FFFBEB]/90 via-white to-[#F8FAFC]",
-        headerBorder: "border-amber-200/45",
-        headerGlow:
-          "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.55),0_0_0_1px_rgba(217,119,6,0.06),0_12px_36px_-16px_rgba(217,119,6,0.1)]",
-        headerAmbient:
-          "bg-[radial-gradient(ellipse_95%_85%_at_50%_-15%,rgba(217,119,6,0.1),transparent_58%)]",
+          "bg-gradient-to-br from-[var(--ph-rm-h-from)] via-[var(--ph-rm-h-via)] to-[var(--ph-rm-h-to)]",
+        headerBorder: "border-[var(--ph-rm-h-border)]",
+        headerGlow: "shadow-[var(--ph-rm-h-glow)]",
+        headerAmbient: "[background-image:var(--ph-rm-ambient)]",
         chipItem:
-          "border-amber-200/85 bg-[#FFFBEB] text-amber-950 shadow-sm shadow-amber-900/[0.04]",
+          "border border-[var(--ph-rm-chip-border)] bg-[var(--ph-rm-chip-bg)] text-[var(--ph-rm-chip-fg)] shadow-sm",
         proseAccent:
-          "border-l-[3px] border-[#D97706]/80 bg-[#FFFBEB]/70 pl-5 sm:pl-6",
-        eyebrow: "text-[#B45309]",
+          "border-l-[3px] border-[var(--ph-rm-prose-border)] bg-[var(--ph-rm-prose-bg)] pl-5 sm:pl-6",
+        eyebrow: "text-[var(--ph-rm-eyebrow)]",
       };
     default:
       return {
         badge:
-          "bg-[#059669] text-white shadow-sm shadow-emerald-900/12 ring-1 ring-emerald-900/10",
-        bar: "bg-[#059669] shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]",
-        barTrack: "bg-[#ECFDF5] ring-1 ring-emerald-200/65",
+          "bg-[var(--ph-rl-badge)] text-[var(--ph-rl-badge-fg)] shadow-sm ring-1 ring-[var(--ph-rl-ring)]",
+        bar: "bg-[var(--ph-rl-bar)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]",
+        barTrack:
+          "bg-[var(--ph-rl-track)] ring-1 ring-[var(--ph-rl-track-ring)]",
         headerTint:
-          "bg-gradient-to-br from-[#ECFDF5]/90 via-white to-[#F8FAFC]",
-        headerBorder: "border-emerald-200/40",
-        headerGlow:
-          "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.55),0_0_0_1px_rgba(5,150,105,0.05),0_12px_36px_-16px_rgba(5,150,105,0.09)]",
-        headerAmbient:
-          "bg-[radial-gradient(ellipse_95%_85%_at_50%_-15%,rgba(5,150,105,0.09),transparent_58%)]",
+          "bg-gradient-to-br from-[var(--ph-rl-h-from)] via-[var(--ph-rl-h-via)] to-[var(--ph-rl-h-to)]",
+        headerBorder: "border-[var(--ph-rl-h-border)]",
+        headerGlow: "shadow-[var(--ph-rl-h-glow)]",
+        headerAmbient: "[background-image:var(--ph-rl-ambient)]",
         chipItem:
-          "border-emerald-200/80 bg-[#ECFDF5] text-emerald-950 shadow-sm shadow-emerald-900/[0.03]",
+          "border border-[var(--ph-rl-chip-border)] bg-[var(--ph-rl-chip-bg)] text-[var(--ph-rl-chip-fg)] shadow-sm",
         proseAccent:
-          "border-l-[3px] border-[#059669]/75 bg-[#ECFDF5]/60 pl-5 sm:pl-6",
-        eyebrow: "text-[#047857]",
+          "border-l-[3px] border-[var(--ph-rl-prose-border)] bg-[var(--ph-rl-prose-bg)] pl-5 sm:pl-6",
+        eyebrow: "text-[var(--ph-rl-eyebrow)]",
       };
   }
 }
